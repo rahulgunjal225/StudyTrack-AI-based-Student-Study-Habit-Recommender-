@@ -9,32 +9,51 @@ from sklearn.cluster import KMeans
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 
-# --------------------------------------------------
+
 # PAGE CONFIG
-# --------------------------------------------------
+
 st.set_page_config(page_title="StudyTrack AI based Student Study Habit Recommender", layout="wide")
 
 st.title("🎓 StudyTrack AI based Student Study Habit Recommender")
 st.caption("AI-Driven Analysis • Clustering • Predictive Insights")
 
-# --------------------------------------------------
-# SIDEBAR
-# --------------------------------------------------
-st.sidebar.header("📂 Dashboard")
+
+# CUSTOM CSS FOR BOLD SIDEBAR
+
+st.markdown("""
+<style>
+    .sidebar .sidebar-content .stRadio > label {
+        font-weight: 900 !important;
+        font-size: 1.2rem !important;
+        color: #1f77b4 !important;
+    }
+    .sidebar-header {
+        font-weight: 900 !important;
+        font-size: 1.5rem !important;
+        color: #1f77b4 !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
+# SIDEBAR - BOLD NAVIGATION ✅
+
+st.sidebar.markdown("### 📂 **Dashboard**")
 
 uploaded_file = st.sidebar.file_uploader(
     "Upload Dataset (CSV / Excel / JSON / SQLite)",
     type=["csv", "xlsx", "json", "db", "sqlite"]
 )
 
+#  BOLD NAVIGATION BAR EXACTLY AS REQUESTED
 page = st.sidebar.radio(
     "Navigate",
-    ["Overview", "Dataset", "Visual Analysis", "Clustering", "Prediction"]
+    ["🏠 **Overview**", "📄 **Dataset**", "📊 **Visual Analysis**", "👥 **Clustering**", "🎯 **Prediction**"]
 )
 
-# --------------------------------------------------
+
 # LOAD DATA
-# --------------------------------------------------
+
 if uploaded_file is None:
     st.info("👈 Please upload a dataset to continue")
     st.stop()
@@ -59,9 +78,9 @@ else:
     st.error("Unsupported file format")
     st.stop()
 
-# --------------------------------------------------
+
 # COLUMN STANDARDIZATION
-# --------------------------------------------------
+
 data.columns = data.columns.str.strip().str.lower().str.replace(" ", "")
 
 rename_map = {
@@ -83,9 +102,9 @@ if missing:
     st.write("Available columns:", list(data.columns))
     st.stop()
 
-# --------------------------------------------------
-# ✅ STEP 1: DERIVED COLUMN : STUDY LEVEL / ATTENTION
-# --------------------------------------------------
+
+# DERIVED COLUMN : STUDY LEVEL
+
 def study_level(hours):
     if hours <= 2:
         return "Low"
@@ -96,11 +115,10 @@ def study_level(hours):
 
 data["StudyLevel"] = data["StudyHours"].apply(study_level)
 
-# --------------------------------------------------
-# OVERVIEW PAGE - ENHANCED
-# --------------------------------------------------
-if page == "Overview":
-    # ================= HERO SECTION =================
+
+# OVERVIEW PAGE
+
+if page == "🏠 **Overview**":
     st.markdown("""
     <style>
     .hero-box {
@@ -122,7 +140,6 @@ if page == "Overview":
         transform: translateY(-5px);
     }
     </style>
-
     <div class="hero-box">
         <h1>🚀 AI Based Student Study Habit Recommender</h1>
         <h4 style="color:#555;">
@@ -131,9 +148,7 @@ if page == "Overview":
     </div>
     """, unsafe_allow_html=True)
 
-    # ================= FEATURE CARDS =================
     c1, c2, c3 = st.columns(3)
-
     with c1:
         st.markdown("""
         <div class="feature-card">
@@ -141,7 +156,6 @@ if page == "Overview":
             <p>Predicts student marks using Machine Learning models.</p>
         </div>
         """, unsafe_allow_html=True)
-
     with c2:
         st.markdown("""
         <div class="feature-card">
@@ -149,7 +163,6 @@ if page == "Overview":
             <p>Analyzes study habits, sleep, play and work patterns.</p>
         </div>
         """, unsafe_allow_html=True)
-
     with c3:
         st.markdown("""
         <div class="feature-card">
@@ -159,8 +172,7 @@ if page == "Overview":
         """, unsafe_allow_html=True)
 
     st.markdown("---")
-
-    # ================= METRICS =================
+    
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("Total Students", len(data))
     m2.metric("Average Marks", round(data["Marks"].mean(), 2))
@@ -168,94 +180,49 @@ if page == "Overview":
     m4.metric("High Study Level", len(data[data["StudyLevel"]=="High"]))
 
     st.markdown("---")
-
-    # ================= DASHBOARD MODULES =================
+    
     st.subheader("🚀 Dashboard Modules")
-
     c1, c2, c3, c4 = st.columns(4)
+    with c1: st.markdown("### 📊 Visual Analysis"); st.caption("Charts & Insights")
+    with c2: st.markdown("### 👥 Student Clustering"); st.caption("K-Means Algorithm")
+    with c3: st.markdown("### 🎯 Marks Prediction"); st.caption("Linear Regression")
+    with c4: st.markdown("### ⬇️ Download Report"); st.caption("CSV Export")
 
-    with c1:
-        st.markdown("### 📊 Visual Analysis")
-        st.caption("Charts & Insights")
 
-    with c2:
-        st.markdown("### 👥 Student Clustering")
-        st.caption("K-Means Algorithm")
+# DATASET PAGE
 
-    with c3:
-        st.markdown("### 🎯 Marks Prediction")
-        st.caption("Linear Regression")
-
-    with c4:
-        st.markdown("### ⬇️ Download Report")
-        st.caption("CSV Export")
-
-# --------------------------------------------------
-# DATASET
-# --------------------------------------------------
-elif page == "Dataset":
+elif page == "📄 **Dataset**":
     st.header("📄 Dataset Preview")
     st.dataframe(data, use_container_width=True)
     with st.expander("📈 Statistics"):
         st.write(data.describe())
 
-# --------------------------------------------------
-# ✅ STEP 2: VISUAL ANALYSIS (ENHANCED)
-# --------------------------------------------------
-elif page == "Visual Analysis":
+
+# VISUAL ANALYSIS PAGE
+
+elif page == "📊 **Visual Analysis**":
     st.header("📊 Visual Analysis")
 
-    # ---------------- STUDY HOURS vs MARKS (COLORED BY STUDY LEVEL) ----------------
     st.subheader("📌 Study Hours vs Marks (Colored by Study Level)")
-
     fig1 = px.scatter(
-        data,
-        x="StudyHours",
-        y="Marks",
-        color="StudyLevel",
-        size="Marks",
+        data, x="StudyHours", y="Marks", color="StudyLevel", size="Marks",
         hover_data=["Marks", "StudyLevel"],
         title="Study Hours vs Marks (Colored by Study Level)",
-        color_discrete_map={
-            "Low": "#d62728",
-            "Medium": "#1f77b4",
-            "High": "#2ca02c"
-        }
+        color_discrete_map={"Low": "#d62728", "Medium": "#1f77b4", "High": "#2ca02c"}
     )
-
     st.plotly_chart(fig1, use_container_width=True)
 
-    # ---------------- AVERAGE MARKS BY STUDY HOURS ----------------
     st.subheader("📊 Average Marks by Study Hours")
-
     avg_df = data.groupby("StudyHours")["Marks"].mean().reset_index()
-
-    fig2 = px.bar(
-        avg_df,
-        x="StudyHours",
-        y="Marks",
-        title="Average Marks by Study Hours",
-        color="Marks"
-    )
-
+    fig2 = px.bar(avg_df, x="StudyHours", y="Marks", title="Average Marks by Study Hours", color="Marks")
     st.plotly_chart(fig2, use_container_width=True)
 
-    # ---------------- CORRELATION HEATMAP ----------------
     st.subheader("🔥 Correlation Heatmap between Variables")
     st.caption("Closer to +1 or -1 indicates strong relationship")
-
     fig_corr, ax_corr = plt.subplots(figsize=(6,5))
-    sns.heatmap(
-        data[required_cols].corr(),
-        annot=True,
-        cmap="coolwarm",
-        linewidths=0.5,
-        fmt=".2f",
-        ax=ax_corr
-    )
+    sns.heatmap(data[required_cols].corr(), annot=True, cmap="coolwarm", linewidths=0.5, fmt=".2f", ax=ax_corr)
     st.pyplot(fig_corr)
 
-    # 📌 What it shows
     st.markdown("""
     **What it shows:**
     - **Red** → strong positive relation
@@ -263,23 +230,16 @@ elif page == "Visual Analysis":
     - **Near 0** → weak/no relation
     """)
 
-    # ---------------- KEY INSIGHTS SUMMARY ----------------
     st.subheader("💡 Key Insights Summary")
-
     avg_study = round(data["StudyHours"].mean(), 2)
     avg_marks = round(data["Marks"].mean(), 2)
     top_student_marks = int(data["Marks"].max())
     high_study_count = len(data[data["StudyLevel"] == "High"])
-
-    # Dynamic correlation insights
+    
     corr_matrix = data[required_cols].corr()
     study_marks_corr = corr_matrix.loc["StudyHours", "Marks"]
     sleep_marks_corr = corr_matrix.loc["SleepHours", "Marks"]
-
-    insight1 = f"Strong positive correlation between Study Hours and Marks ({study_marks_corr:.2f})."
-    insight2 = f"Sleep Hours show {abs(sleep_marks_corr):.2f} impact on Marks."
-    insight3 = "Play Hours and Work Hours have weak or negative influence on Marks."
-
+    
     st.markdown(f"""
     - 📘 **Average Study Hours:** {avg_study} hrs/day  
     - 🧮 **Average Marks:** {avg_marks}  
@@ -287,15 +247,15 @@ elif page == "Visual Analysis":
     - 📈 **High Study Level Students:** {high_study_count}  
 
     **Observations:**
-    - ✅ {insight1}  
-    - ⚠️ {insight2}  
-    - ❌ {insight3}  
+    - ✅ Strong positive correlation between Study Hours and Marks ({study_marks_corr:.2f}).
+    - ⚠️ Sleep Hours show {abs(sleep_marks_corr):.2f} impact on Marks.
+    - ❌ Play Hours and Work Hours have weak or negative influence on Marks.
     """)
 
-# --------------------------------------------------
-# CLUSTERING
-# --------------------------------------------------
-elif page == "Clustering":
+
+# CLUSTERING PAGE
+
+elif page == "👥 **Clustering**":
     st.header("👥 Student Clustering (K-Means)")
 
     scaler = StandardScaler()
@@ -311,27 +271,21 @@ elif page == "Clustering":
     })
 
     fig, ax = plt.subplots()
-    sns.scatterplot(data=data, x="StudyHours", y="Marks",
-                   hue="Performance", palette="Set2", ax=ax)
+    sns.scatterplot(data=data, x="StudyHours", y="Marks", hue="Performance", palette="Set2", ax=ax)
     st.pyplot(fig)
 
-    st.dataframe(
-        data[["StudyHours", "Marks", "Cluster", "Performance", "StudyLevel"]],
-        use_container_width=True
-    )
+    st.dataframe(data[["StudyHours", "Marks", "Cluster", "Performance", "StudyLevel"]], use_container_width=True)
 
-# --------------------------------------------------
-# PREDICTION
-# --------------------------------------------------
-elif page == "Prediction":
+
+# PREDICTION PAGE
+
+elif page == "🎯 **Prediction**":
     st.header("🎯 Marks Prediction (Linear Regression)")
 
     c1, c2 = st.columns(2)
-
     with c1:
         study = st.slider("Study Hours", 0, 10, 4)
         work = st.slider("Work Hours", 0, 6, 2)
-
     with c2:
         play = st.slider("Play Hours", 0, 6, 1)
         sleep = st.slider("Sleep Hours", 4, 10, 7)
@@ -367,7 +321,6 @@ elif page == "Prediction":
     ax.set_ylabel("Predicted Marks")
     st.pyplot(fig)
 
-    # ---------------- DOWNLOAD ----------------
     st.markdown("---")
     st.header("⬇️ Download Full Analysis Report")
 
@@ -383,8 +336,8 @@ elif page == "Prediction":
         "text/csv"
     )
 
-# --------------------------------------------------
+
 # FOOTER
-# --------------------------------------------------
+
 st.markdown("---")
 st.caption("AI-Based Student Study Habit Analysis and Recommendation System")
