@@ -1,0 +1,12 @@
+streamlit
+pandas
+numpy
+plotly
+scikit-learn
+mysql-connector-python
+bcrypt
+openpyxl
+
+✅ How to use it (Local Run)
+pip install -r requirements.txt
+python -m streamlit run final_dashboard.py
