@@ -13,7 +13,6 @@ import os
 from pathlib import Path
 
 np.random.seed(42)
-
 st.set_page_config(page_title="Study Track AI Based Student Study Habit Recommender", layout="wide")
 
 from auth import create_user, login_user, reset_password
@@ -25,8 +24,7 @@ if "forgot" not in st.session_state:
     st.session_state.forgot = False
 
 # RESPONSIVE LOGIN PAGE S
-if not st.session_state.logged_in:
-    
+if not st.session_state.logged_in:   
     st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -243,7 +241,6 @@ button[data-testid="baseButton-primary"]:hover::after {
                 st.success("🎉 Account created! Login now.")
             else:
                 st.error("⚠️ Complete all fields (6+ char password)")
-
     st.markdown("</div></div>", unsafe_allow_html=True)
     st.stop()
 
@@ -298,7 +295,6 @@ page = st.sidebar.radio(
 )
 
 st.sidebar.markdown("---")
-
 if st.sidebar.button("🚪 Logout"):
     st.session_state.logged_in = False
     st.session_state.pop("user_id", None)
@@ -347,7 +343,6 @@ if page == "🏠 Home":
         </div>
     </div>
     """, unsafe_allow_html=True)
-
     st.divider()
     col1, col2, col3 = st.columns(3)
 
@@ -356,40 +351,32 @@ if page == "🏠 Home":
         st.subheader("🎯 Smart Performance Prediction")
         st.write("Advanced Machine Learning models analyze study habits to accurately predict academic performance and learning outcomes.")
 
-
     with col2:
         st.image("https://cdn-icons-png.flaticon.com/512/4140/4140037.png", width=120)
         st.subheader("🧠 Intelligent Behavior Analysis")
         st.write("AI identifies hidden patterns from study hours, sleep cycles, attendance, and lifestyle habits to understand student behavior deeply.")
 
-
     with col3:
         st.image("https://cdn-icons-png.flaticon.com/512/4140/4140048.png", width=120)
         st.subheader("📈 Personalized Growth Strategy")
         st.write("Students receive data-driven recommendations tailored to their strengths and weaknesses for continuous academic improvement.")
-
     st.divider()
     st.info("**Tip:** Go to 'Model Training' to upload your batch data and train the model.")
 
 # 📂 MODEL TRAINING PAGE
 elif page == "🧠 Model Training":
     st.header("📂 Train the AI Model")
-
     model_path = "studytrack_model.pkl"
-    
     file_type = st.radio("Select Data Source:", ["CSV", "Excel"])
     uploaded_file = None
-
     if file_type == "CSV":
         uploaded_file = st.file_uploader("Upload Student Performance CSV", type=["csv"])
     elif file_type == "Excel":
         uploaded_file = st.file_uploader("Upload Student Performance Excel", type=["xlsx"])
-
     if uploaded_file is None and "model" not in st.session_state and os.path.exists(model_path):
         with open(model_path, "rb") as f:
             st.session_state["model"] = pickle.load(f)
         st.info("📂 Loaded saved model!")
-
     if uploaded_file is not None:
         if file_type == "CSV":
             data = pd.read_csv(uploaded_file)
@@ -397,36 +384,34 @@ elif page == "🧠 Model Training":
             data = pd.read_excel(uploaded_file)
 
         data.columns = data.columns.str.strip()
+        # FIX 1: Column name mismatch avoidance
+        data.columns = data.columns.str.replace(" ", "").str.replace("_", "")
+        
         data = data.loc[:, ~data.columns.str.contains("^Unnamed")]
 
         drop_cols = ["StudentID",  "Gender"]
         data = data.drop(columns=[c for c in drop_cols if c in data.columns])
 
-        if "Online Classes Taken" in data.columns:
-            data["Online Classes Taken"] = data["Online Classes Taken"].map(
+        if "OnlineClassesTaken" in data.columns:
+            data["OnlineClassesTaken"] = data["OnlineClassesTaken"].map(
                 {"TRUE": 1, "FALSE": 0, True: 1, False: 0}
             )
-
         data = data.fillna(0)
 
         st.success("✅ Data Loaded Successfully!")
         st.dataframe(data.head(10))
-
-        data_numeric = data.copy()
-        
+        data_numeric = data.copy() 
         st.success(f"✅ Data Cleaned! Using {len(data_numeric.columns)} columns, {len(data_numeric)} rows")
         st.dataframe(data_numeric.head())
 
         if len(data_numeric) < 5:
             st.error("❌ Need at least 5 rows of data!")
             st.stop()
-
         if "Marks" not in data_numeric.columns:
             st.error("❌ 'Marks' column missing in dataset!")
             st.stop()
 
         target_col = "Marks"
-        
         X = data_numeric.drop(columns=[target_col, "Name"], errors="ignore")
         y = data_numeric[target_col]
 
@@ -484,7 +469,6 @@ elif page == "🧠 Model Training":
             X_selected, y, test_size=0.2, random_state=42 
         )
         pipeline.fit(X_train_sel, y_train_sel)
-
         y_pred = pipeline.predict(X_test_sel)
         score = r2_score(y_test_sel, y_pred)
 
@@ -499,7 +483,6 @@ elif page == "🧠 Model Training":
         st.write("### 📊 Actual vs Predicted Marks")
         st.dataframe(result_df)
         st.line_chart(result_df, use_container_width=True)
-
         st.session_state["model"] = pipeline
         st.session_state["data"] = X_selected.copy()
         st.session_state["original_data"] = data_numeric 
@@ -516,7 +499,6 @@ elif page == "🧠 Model Training":
 # 📊 DATA VIsuals PAGE
 elif page == "📊 Data Visuals":
     st.header("📊 Data Visuals Dashboard")
-
     if "data" not in st.session_state:
         st.warning("⚠️ Please train the model first in the 'Model Training' section.")
         st.stop()
@@ -547,10 +529,8 @@ elif page == "📊 Data Visuals":
             title="Study Hours vs Marks"
         )
         st.plotly_chart(fig, use_container_width=True)
-
     st.divider()
     
-   
     # 🔴 STEP 1: MARKS DISTRIBUTION
     st.divider()
     st.subheader("📈 Marks Distribution (Overall Performance Spread)")
@@ -566,7 +546,6 @@ elif page == "📊 Data Visuals":
         yaxis_title="Number of Students",
         bargap=0.15
     )
-
     st.plotly_chart(fig_dist, use_container_width=True)
 
     # 🔴 STEP 2: STUDENT CLUSTERING
@@ -575,10 +554,8 @@ elif page == "📊 Data Visuals":
     # Using only important columns
     if "StudyHours" in df.columns:
         cluster_df = df[["StudyHours", "Marks"]].copy()
-
         kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
         cluster_df["Cluster"] = kmeans.fit_predict(cluster_df)
-
         fig_cluster = px.scatter(
             cluster_df,
             x="StudyHours",
@@ -594,7 +571,6 @@ elif page == "📊 Data Visuals":
         st.plotly_chart(fig_cluster, use_container_width=True)
     st.divider()
     st.subheader("💡 Key Insights Summary")
-
     avg_study = df["StudyHours"].mean() if "StudyHours" in df.columns else 0
     avg_marks = df["Marks"].mean()
 
@@ -606,7 +582,6 @@ elif page == "📊 Data Visuals":
         top_student = top_row["Name"]
     else:
         top_student = f"Student #{df['Marks'].idxmax() + 1}"
-
     top_marks = df["Marks"].max()
 
     st.markdown(f"""
@@ -634,31 +609,40 @@ elif page == "🎯 Student Recommendation":
     student_name = st.text_input("👤 Student Name")
 
     col1, col2 = st.columns(2)
-    with col1: sleep = st.number_input("😴 Sleep Hours", 0.0, 12.0, 6.0)
-    with col2: exercise = st.number_input("🏃 Exercise Hours", 0.0, 5.0, 1.0)
+    with col1:
+        sleep = st.number_input("😴 Sleep Hours", 0.0, 12.0, 6.0)
+    with col2:
+        attendance = st.number_input("🏫 Attendance", 0.0, 100.0, 80.0)
 
     col3, col4 = st.columns(2)
-    with col3: study = st.number_input("📘 Study Hours", 0.0, 12.0, 4.0)
-    with col4: social = st.number_input("📱 Social Media Hours", 0.0, 6.0, 2.0)
+    with col3:
+        study = st.number_input("📘 Study Hours", 0.0, 12.0, 4.0)
+    with col4:
+        work = st.number_input("💼 WorkHours", 0.0, 12.0, 2.0)
 
     play = st.number_input("🎮 Play Hours", 0.0, 6.0, 1.0)
 
     input_data = {}
     for f in features:
-        if "study" in f.lower():
-            input_data[f] = study
-        elif "sleep" in f.lower():
+        if "sleep" in f.lower():
             input_data[f] = sleep
+        elif "study" in f.lower():
+            input_data[f] = study
         elif "play" in f.lower():
             input_data[f] = play
-        elif "social" in f.lower(): 
-            input_data[f] = social
         elif "attendance" in f.lower():
-            input_data[f] = 80
+            input_data[f] = attendance
+        elif "work" in f.lower():
+            input_data[f] = work
         else:
             input_data[f] = 0
 
     if st.button("🎯 Predict Individual Marks", use_container_width=True):
+        # FIX 2: Individual prediction empty-name guard
+        if not student_name:
+            st.warning("⚠️ Please enter Student Name")
+            st.stop()
+            
         input_df = pd.DataFrame([input_data])
         input_df = input_df[features] 
         predicted = model.predict(input_df)[0]
@@ -669,7 +653,6 @@ elif page == "🎯 Student Recommendation":
             confidence = np.std(all_tree_preds)
         else:
             confidence = 0.0
-
 
         st.metric("📊 Predicted Score", f"{predicted:.1f}/100")
         st.metric("📉 Prediction Confidence", f"±{confidence:.2f}")
@@ -692,10 +675,13 @@ elif page == "🎯 Student Recommendation":
             bulk_df = pd.read_excel(bulk_file)
         
         bulk_df.columns = bulk_df.columns.str.strip()
+        # Ensure consistency for bulk upload as well
+        bulk_df.columns = bulk_df.columns.str.replace(" ", "").str.replace("_", "")
+        
         bulk_df = bulk_df.loc[:, ~bulk_df.columns.str.contains("^Unnamed")]
         
-        if "Online Classes Taken" in bulk_df.columns:
-            bulk_df["Online Classes Taken"] = bulk_df["Online Classes Taken"].map(
+        if "OnlineClassesTaken" in bulk_df.columns:
+            bulk_df["OnlineClassesTaken"] = bulk_df["OnlineClassesTaken"].map(
                 {"TRUE": 1, "FALSE": 0, True: 1, False: 0}
             )
         
@@ -775,7 +761,6 @@ elif page == "🎯 Student Recommendation":
         preferred_order = [c for c in preferred_order if c in result_df.columns]
         result_df = result_df[preferred_order]
         st.download_button("📥 Download Results", result_df.to_csv(index=False).encode("utf-8"), "bulk_predictions.csv", "text/csv")
-
 # 📜 FOOTER
 st.markdown("---")
 st.markdown("<center>© StudyTrack AI based Student Study Habit Recommender</center>", unsafe_allow_html=True)
