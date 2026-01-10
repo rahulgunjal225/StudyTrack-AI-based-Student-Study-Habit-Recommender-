@@ -122,7 +122,7 @@ Academic mentoring & counseling
 
 Educational data analytics
 
-Internship / final year academic project
+Internship 
 
 👨‍💻 Author
 Rahul Gunjal
