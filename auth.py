@@ -1,5 +1,22 @@
 import bcrypt
+import sqlite3
 from db import get_connection
+
+# Create users table automatically
+conn = get_connection()
+cur = conn.cursor()
+
+cur.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE,
+    email TEXT UNIQUE,
+    password TEXT
+)
+""")
+
+conn.commit()
+conn.close()
 
 
 def hash_password(password):
@@ -16,13 +33,18 @@ def create_user(username, email, password):
 
     hashed = hash_password(password).decode()
 
-    cur.execute(
-        "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
-        (username, email, hashed)
-    )
+    try:
+        cur.execute(
+            "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
+            (username, email, hashed)
+        )
+        conn.commit()
+        conn.close()
+        return True
 
-    conn.commit()
-    conn.close()
+    except sqlite3.IntegrityError:
+        conn.close()
+        return False
 
 
 def login_user(username, password):
